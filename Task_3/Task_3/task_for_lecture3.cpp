@@ -28,12 +28,8 @@ void InitMatrix( double** matrix )
 	}
 }
 
-/// Функция SerialGaussMethod() решает СЛАУ методом Гаусса 
-/// matrix - исходная матрица коэффиициентов уравнений, входящих в СЛАУ,
-/// последний столбей матрицы - значения правых частей уравнений
-/// rows - количество строк в исходной матрице
-/// result - массив ответов СЛАУ
-void SerialGaussMethod( double **matrix, const int rows, double* result )
+// Последовательный
+void SerialGaussMethod_Sequent( double **matrix, const int rows, double* result )
 {
 	int k;
 	double koef;
@@ -58,7 +54,7 @@ void SerialGaussMethod( double **matrix, const int rows, double* result )
 	high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
 	duration<double> duration = (t2 - t1);
-	printf("Duration is: %f seconds\n", duration.count());
+	printf("Sequental duration is: %f seconds\n", duration.count());
 
 	// обратный ход метода Гаусса
 	result[rows - 1] = matrix[rows - 1][rows] / matrix[rows - 1][rows - 1];
@@ -69,6 +65,50 @@ void SerialGaussMethod( double **matrix, const int rows, double* result )
 
 		//
 		for ( int j = k + 1; j < rows; ++j )
+		{
+			result[k] -= matrix[k][j] * result[j];
+		}
+
+		result[k] /= matrix[k][k];
+	}
+}
+
+// Параллельный
+void SerialGaussMethod_Parallel(double **matrix, const int rows, double* result)
+{
+	int k;
+	double koef;
+
+	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
+	// прямой ход метода Гаусса
+	for (k = 0; k < rows; ++k)
+	{
+		//
+		cilk_for (int i = k + 1; i < rows; ++i)
+		{
+			koef = -matrix[i][k] / matrix[k][k];
+
+			for (int j = k; j <= rows; ++j)
+			{
+				matrix[i][j] += koef * matrix[k][j];
+			}
+		}
+	}
+
+	high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+	duration<double> duration = (t2 - t1);
+	printf("Parallel duration is: %f seconds\n", duration.count());
+
+	// обратный ход метода Гаусса
+	result[rows - 1] = matrix[rows - 1][rows] / matrix[rows - 1][rows - 1];
+
+	for (k = rows - 2; k >= 0; --k)
+	{
+		result[k] = matrix[k][rows];
+
+		cilk_for (int j = k + 1; j < rows; ++j)
 		{
 			result[k] -= matrix[k][j] * result[j];
 		}
@@ -130,7 +170,7 @@ int main()
 	double *result = new double[MATRIX_SIZE];
 	InitMatrix(matrix);
 
-	SerialGaussMethod(matrix, MATRIX_SIZE, result);
+	SerialGaussMethod_Parallel(matrix, MATRIX_SIZE, result);
 
 
 
