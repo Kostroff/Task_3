@@ -38,6 +38,8 @@ void SerialGaussMethod( double **matrix, const int rows, double* result )
 	int k;
 	double koef;
 
+	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+	
 	// прямой ход метода Гаусса
 	for ( k = 0; k < rows; ++k )
 	{
@@ -52,6 +54,11 @@ void SerialGaussMethod( double **matrix, const int rows, double* result )
 			}
 		}
 	}
+
+	high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+	duration<double> duration = (t2 - t1);
+	printf("Duration is: %f seconds\n", duration.count());
 
 	// обратный ход метода Гаусса
 	result[rows - 1] = matrix[rows - 1][rows] / matrix[rows - 1][rows - 1];
@@ -75,6 +82,8 @@ int main()
 {
 	srand( (unsigned) time( 0 ) );
 
+
+	/*
 	int i;
 
 	// кол-во строк в матрице, приводимой в качестве примера
@@ -114,6 +123,16 @@ int main()
 	}
 
 	delete[] result;
+
+	*/
+
+	double **matrix = new double*[MATRIX_SIZE];
+	double *result = new double[MATRIX_SIZE];
+	InitMatrix(matrix);
+
+	SerialGaussMethod(matrix, MATRIX_SIZE, result);
+
+
 
 	return 0;
 }
