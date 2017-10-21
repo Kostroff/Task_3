@@ -39,7 +39,6 @@ void SerialGaussMethod_Sequent( double **matrix, const int rows, double* result 
 	// прямой ход метода Гаусса
 	for ( k = 0; k < rows; ++k )
 	{
-		//
 		for ( int i = k + 1; i < rows; ++i )
 		{
 			koef = -matrix[i][k] / matrix[k][k];
@@ -63,7 +62,6 @@ void SerialGaussMethod_Sequent( double **matrix, const int rows, double* result 
 	{
 		result[k] = matrix[k][rows];
 
-		//
 		for ( int j = k + 1; j < rows; ++j )
 		{
 			result[k] -= matrix[k][j] * result[j];
@@ -77,17 +75,15 @@ void SerialGaussMethod_Sequent( double **matrix, const int rows, double* result 
 void SerialGaussMethod_Parallel(double **matrix, const int rows, double* result)
 {
 	int k;
-	double koef;
 
 	high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
 	// прямой ход метода Гаусса
 	for (k = 0; k < rows; ++k)
 	{
-		//
 		cilk_for (int i = k + 1; i < rows; ++i)
 		{
-			koef = -matrix[i][k] / matrix[k][k];
+			double koef = -matrix[i][k] / matrix[k][k];
 
 			for (int j = k; j <= rows; ++j)
 			{
@@ -166,13 +162,14 @@ int main()
 
 	*/
 
+	unsigned int test_size = 5;
 	double **matrix = new double*[MATRIX_SIZE];
-	double *result = new double[MATRIX_SIZE];
+	double *result1 = new double[MATRIX_SIZE];
+	double *result2 = new double[MATRIX_SIZE];
 	InitMatrix(matrix);
 
-	SerialGaussMethod_Parallel(matrix, MATRIX_SIZE, result);
-
-
+	SerialGaussMethod_Sequent (matrix, MATRIX_SIZE, result1);
+	SerialGaussMethod_Parallel(matrix, MATRIX_SIZE, result2);
 
 	return 0;
 }
